@@ -1,48 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>New ERC-20 Tokens Tracker</title>
+  <title>Newly Launched Tokens</title>
 </head>
 <body>
-  <h1>New ERC-20 Tokens Tracker</h1>
-  <p>Recently launched ERC-20 tokens:</p>
+  <h1>Newly Launched Tokens</h1>
+  <p>Recently deployed ERC-20 tokens:</p>
   <ul id="tokenList"></ul>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js"></script>
   <script src="script.js"></script>
+<script>
+// Replace 'YOUR_API_KEY' with your actual Etherscan API key
+const etherscanApiKey = '8YUX8ETXVV5Y6YNWCN6TECQXSXAZTVRFPS';
 
-  <script>
-    // Replace 'YOUR_API_KEY' with your actual API key from the Ethereum blockchain explorer
-    const apiKey = '8YUX8ETXVV5Y6YNWCN6TECQXSXAZTVRFPS';
-    const apiUrl = `https://api.etherscan.io/api?module=account&action=tokentx&address=0x0000000000000000000000000000000000000000&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`;
+// Function to fetch newly deployed contract addresses
+async function fetchContractCreations() {
+  try {
+    const apiUrl = `https://api.etherscan.io/api?module=account&action=txlist&address=0x0000000000000000000000000000000000000000&sort=desc&apikey=${etherscanApiKey}`;
+    const response = await axios.get(apiUrl);
+    return response.data.result;
+  } catch (error) {
+    console.error('Error fetching contract creations:', error);
+    return [];
+  }
+}
 
-    // Function to fetch and display the recently launched ERC-20 tokens
-    async function fetchNewTokens() {
-      try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
+// Function to check if a contract is ERC-20
+async function isERC20Contract(contractAddress) {
+  try {
+    // Replace 'YOUR_ETHEREUM_NODE_URL' with the URL of your Ethereum node
+    const provider = new ethers.providers.JsonRpcProvider('https://mainnet.infura.io/v3/0cc2dd05264046f88422cef9ba087d3e');
+    const contract = new ethers.Contract(contractAddress, erc20Abi, provider);
+    const totalSupply = await contract.totalSupply();
+    return totalSupply !== undefined;
+  } catch (error) {
+    console.error('Error checking if the contract is ERC-20:', error);
+    return false;
+  }
+}
 
-        if (data.status === '1') {
-          const tokenList = data.result;
+// Function to display the newly launched tokens
+async function displayNewTokens() {
+  try {
+    const contractCreations = await fetchContractCreations();
+    const tokenListElement = document.getElementById('tokenList');
+    tokenListElement.innerHTML = '';
 
-          const tokenListElement = document.getElementById('tokenList');
-          tokenListElement.innerHTML = '';
+    for (const tx of contractCreations) {
+      if (tx.input === '0x') {
+        const contractAddress = tx.creates;
+        const isERC20 = await isERC20Contract(contractAddress);
 
-          for (const token of tokenList) {
-            if (token.tokenStandard === 'ERC20') {
-              const listItem = document.createElement('li');
-              listItem.textContent = `Token Name: ${token.tokenName}, Token Symbol: ${token.tokenSymbol}, Contract Address: ${token.contractAddress}`;
-              tokenListElement.appendChild(listItem);
-            }
-          }
-        } else {
-          console.error('Error retrieving token data:', data.message);
+        if (isERC20) {
+          const listItem = document.createElement('li');
+          listItem.textContent = `Contract Address: ${contractAddress}`;
+          tokenListElement.appendChild(listItem);
         }
-      } catch (error) {
-        console.error('Error fetching token data:', error);
       }
     }
+  } catch (error) {
+    console.error('Error displaying new tokens:', error);
+  }
+}
 
-    fetchNewTokens();
-  </script>
+displayNewTokens();
+
+
+
+
+  
+</script>
+
+
+
 </body>
 </html>
