@@ -1,51 +1,48 @@
-
-
 <!DOCTYPE html>
 <html>
 <head>
-  <title>New Ethereum Tokens Tracker</title>
+  <title>New ERC-20 Tokens Tracker</title>
 </head>
 <body>
-  <h1>New Ethereum Tokens Tracker</h1>
-  <p>Recently launched tokens:</p>
+  <h1>New ERC-20 Tokens Tracker</h1>
+  <p>Recently launched ERC-20 tokens:</p>
   <ul id="tokenList"></ul>
 
   <script src="script.js"></script>
 
   <script>
-
     // Replace 'YOUR_API_KEY' with your actual API key from the Ethereum blockchain explorer
-const apiKey = '8YUX8ETXVV5Y6YNWCN6TECQXSXAZTVRFPS';
-const apiUrl = `https://api.etherscan.io/api?module=account&action=tokentx&address=0x0000000000000000000000000000000000000000&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`;
+    const apiKey = '8YUX8ETXVV5Y6YNWCN6TECQXSXAZTVRFPS';
+    const apiUrl = `https://api.etherscan.io/api?module=account&action=tokentx&address=0x0000000000000000000000000000000000000000&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`;
 
-// Function to fetch and display the recently launched tokens
-async function fetchNewTokens() {
-  try {
-    const response = await fetch(apiUrl);
-    const data = await response.json();
+    // Function to fetch and display the recently launched ERC-20 tokens
+    async function fetchNewTokens() {
+      try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
 
-    if (data.status === '1') {
-      const tokenList = data.result;
+        if (data.status === '1') {
+          const tokenList = data.result;
 
-      const tokenListElement = document.getElementById('tokenList');
-      tokenListElement.innerHTML = '';
+          const tokenListElement = document.getElementById('tokenList');
+          tokenListElement.innerHTML = '';
 
-      for (const token of tokenList) {
-        const listItem = document.createElement('li');
-        listItem.textContent = `Token Name: ${token.tokenName}, Token Symbol: ${token.tokenSymbol}, Contract Address: ${token.contractAddress}`;
-        tokenListElement.appendChild(listItem);
+          for (const token of tokenList) {
+            if (token.tokenStandard === 'ERC20') {
+              const listItem = document.createElement('li');
+              listItem.textContent = `Token Name: ${token.tokenName}, Token Symbol: ${token.tokenSymbol}, Contract Address: ${token.contractAddress}`;
+              tokenListElement.appendChild(listItem);
+            }
+          }
+        } else {
+          console.error('Error retrieving token data:', data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching token data:', error);
       }
-    } else {
-      console.error('Error retrieving token data:', data.message);
     }
-  } catch (error) {
-    console.error('Error fetching token data:', error);
-  }
-}
 
-fetchNewTokens();
-
-    
+    fetchNewTokens();
   </script>
 </body>
 </html>
